@@ -62,9 +62,7 @@ int servPin = 5; // Gpio Servo
 // General declarations
 int score = 0;
 int balls = 0;
-int n = 0;
-int result;
-int s;
+
 int highscore;         // the current state of the output pin
 int resetState;
 int loopled = 0;
@@ -157,63 +155,24 @@ void loop() {
     scoreDisplays();
     newgamesound = 1;
 
-    for (s = 0; s <= 5; s++) {  // Check sensor array.
-      result = digitalRead(sensors[s]);
-
-      if (result == LOW) {
-
-        if (s == 0) {
-          n = 100;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp3
-          addpoints(n);
+    for (int s = 0; s <= 5; s++) 
+    {  // Check sensor array.
+      if (!digitalRead(sensors[s])) 
+      {
+        switch (s)
+        {
+          case 0 : play<100>() break;
+          case 1 : play<50>() break;
+          case 2 : play<40>() break;
+          case 3 : play<30>() break;
+          case 4 : play<20>() break;
+          case 5 : play<10>() break;
+        
+          default: 
+          break;
         }
-        if (s == 1) {
-          n = 50;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp3
-          addpoints(n);
 
-        }
-        if (s == 2) {
-          n = 40;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp3
-          addpoints(n);
-
-        }
-        if (s == 3) {
-          n = 30;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp33
-          addpoints(n);
-        }
-        if (s == 4) {
-          n = 20;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp3
-          addpoints(n);
-
-        }
-        if (s == 5) {
-          n = 10;
-          pointsDisplays(n);
-          ledPoints();
-          playpoints(n);  //play specific mp3
-          addpoints(n);
-
-        }
-        else {
-
-        }
-        // add line: a break attached to button to reset inc, without resetting arduino.
-
-      }//end of while loo
+      }//end of while loop
 
     }
     startOver();
@@ -228,11 +187,24 @@ void loop() {
   highscoreDisplays();
 
 }
-void addpoints(int n) {
-  score = score + n;
-  if (highscore < score) highscore = score;
+inline template<int _n > void play(void)
+{
+  pointsDisplays<_n>();
+  ledPoints();
+  playpoints(_n);  //play specific mp3
+  addpoints<_n>();
+}
+
+template<int _n > void addpoints() 
+{
+  score = score + _n;
+
+  highscore = highscore < score ? score : highscore;
+
   balls = balls - 1;
+
   scoreDisplays();
+
   Serial.print("Your score is: ");
   Serial.println(score);
   Serial.print("Highscore is: ");
@@ -242,11 +214,13 @@ void addpoints(int n) {
   delay(sensDelay);
 }
 
-void playpoints(int n) {
-  playermp3.playMp3Folder(n);
+void playpoints(int _n) 
+{
+  playermp3.playMp3Folder(_n);
 }
 
-void reset() {
+void reset() 
+{
   returnControl(servopen);
   playermp3.playMp3Folder(201);
   score = 0;
@@ -267,11 +241,13 @@ void startOver() {
   }
 }
 
-void returnControl(int x) {
+void returnControl(int x) 
+{
   ballReturn.write(x);
 }
 
-void newgameDisplays() {
+void newgameDisplays() 
+{
   matrix.fillScreen(0);
   matrix.fillScreen(matrix.Color(100, 0, 100));
   matrix.setTextColor(matrix.Color(0, 0, 0));
@@ -289,7 +265,8 @@ void newgameDisplays() {
   matrix.show();
 }
 
-void scoreDisplays() {
+void scoreDisplays() 
+{
   matrix.fillScreen(0);
   matrix.setTextColor(colors[0]);
   matrix.setCursor(2, 0);
@@ -302,32 +279,35 @@ void scoreDisplays() {
   matrix.show();
 }
 
-void pointsDisplays(int n) {
+template<int _n>void pointsDisplays(void) 
+{
   matrix.fillScreen(0);
   matrix.setTextColor(colors[0]);
   matrix.setCursor(2, 9);
   matrix.print("POINTS");
   matrix.setTextColor(colors[2]);
-  if (n >= 100) matrix.setCursor(7, 0);
-  if (n < 100) matrix.setCursor(10, 0);
-  matrix.print(n);
+  if (_n >= 100) matrix.setCursor(7, 0);
+  if (_n < 100) matrix.setCursor(10, 0);
+  matrix.print(_n);
   matrix.show();
   matrix.fillScreen(0);
   delay(300);
   matrix.setTextColor(colors[1]);
-  if (n >= 100) matrix.setCursor(7, 0);
-  if (n < 100) matrix.setCursor(10, 0);
-  matrix.print(n);
+  if (_n >= 100) matrix.setCursor(7, 0);
+  if (_n < 100) matrix.setCursor(10, 0);
+  matrix.print(_n);
   matrix.show();
   delay(400);
 }
 
-void resetDisplays() {
+void resetDisplays() 
+{
   matrix.fillScreen(0);
   matrix.show();
 }
 
-void highscoreDisplays() {
+void highscoreDisplays() 
+{
   if (boot == 0) {
     static unsigned long wait_highscoreDisplays = 50;
     static unsigned long lastUpdate_highscoreDisplays = 0;
@@ -354,7 +334,8 @@ void highscoreDisplays() {
   }
 }
 
-void skeeballDisplays() {
+void skeeballDisplays() 
+{
   static unsigned long wait_highscoreDisplays = 50;
   static unsigned long lastUpdate_highscoreDisplays = 0;
   unsigned long now_highscoreDisplays = millis();
@@ -373,13 +354,15 @@ void skeeballDisplays() {
   matrix.show();
 }
 
-void ledPoints() {
+void ledPoints() 
+{
   ciblerouge();
   theaterChase(0xff, 0, 0, 20);
   cibleturquoise();
 }
 
-void ciblerouge() {
+void ciblerouge() 
+{
 
     strip_cible.setBrightness(255);
     strip_cible.begin();
@@ -388,7 +371,8 @@ void ciblerouge() {
 
 }
 
-void cibleturquoise() {
+void cibleturquoise() 
+{
 
     strip_cible.setBrightness(255);
     strip_cible.begin();
